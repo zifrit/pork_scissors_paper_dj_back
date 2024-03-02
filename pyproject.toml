@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "rock-scissors-paper-dj-back"
+version = "0.1.0"
+description = ""
+authors = ["zifrit"]
+readme = "README.md"
+packages = [{include = "rock_scissors_paper_dj_back"}]
+
+[tool.poetry.dependencies]
+python = "3.12"
+django = "^5.0.2"
+djangorestframework = "^3.14.0"
+python-dotenv = "^1.0.1"
+django-filter = "^23.5"
+django-debug-toolbar = "^4.3.0"
+gunicorn = "^21.2.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
