@@ -1,3 +1,4 @@
+from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -13,3 +14,9 @@ class CustomUserViewSet(viewsets.ModelViewSet):
         'tg_id',
         'username',
     ]
+
+    @action(methods=['post'], detail=False, url_path='check-user')
+    def check_user(self, request):
+        data = request.data
+        user = models.CustomUser.objects.filter(tg_id=data['id']).exists()
+        return Response({'status': user})
