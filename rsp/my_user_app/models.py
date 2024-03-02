@@ -18,10 +18,10 @@ class CustomUser(AbstractUser, DCU):
 
     class Meta:
         db_table = 'CustomUser'
-        verbose_name = 'CustomUser'
-        verbose_name_plural = 'CustomUsers'
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
 
     def __str__(self):
         if self.get_full_name():
-            return self.get_full_name()
-        return self.username
+            return f'{self.get_full_name()}-id{self.tg_id}'
+        return f'{self.username}-id{self.tg_id}'
