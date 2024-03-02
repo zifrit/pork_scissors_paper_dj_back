@@ -44,9 +44,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 ]
 INSTALLED_APPS += [
-    'my_user_app.apps.MyUserAppConfig'
-    'library_app.apps.LibraryAppConfig'
-    'context_app.apps.ContextAppConfig'
+    'my_user_app.apps.MyUserAppConfig',
+    'my_library_app.apps.MyLibraryAppConfig',
+    'context_app.apps.ContextAppConfig',
 ]
 
 INSTALLED_APPS += [
@@ -85,7 +85,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'rsp.wsgi.application'
-
+AUTH_USER_MODEL = 'my_user_app.CustomUser'
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
