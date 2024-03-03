@@ -24,7 +24,7 @@ class AdminCustomUser(UserAdmin):
             'fields': ('username', 'password')
         }),
         (_('Personal info'), {
-            'fields': ('first_name', 'last_name', 'email', 'phone')
+            'fields': ('tg_id', 'first_name', 'last_name', 'email', 'phone')
         }),
         (_('Permissions'), {
             'fields': ('is_active', 'is_staff', 'is_superuser', 'delete', 'groups', 'user_permissions'),

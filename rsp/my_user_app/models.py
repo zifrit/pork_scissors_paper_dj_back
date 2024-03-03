@@ -12,7 +12,7 @@ class CustomUserManager(UserManager):
 
 class CustomUser(AbstractUser, DCU):
     """Расширенный базовый пользователь"""
-    phone = models.CharField(max_length=12, unique=True, verbose_name='Номер телефона', blank=True)
+    phone = models.CharField(max_length=12, unique=True, verbose_name='Номер телефона', blank=True, null=True)
     tg_id = models.CharField(max_length=20, unique=True, verbose_name='ID Телеграмма', db_index=True)
     objects = CustomUserManager()
 

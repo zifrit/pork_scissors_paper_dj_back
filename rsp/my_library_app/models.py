@@ -19,4 +19,4 @@ class Games(DCU):
         verbose_name_plural = 'СписокИгр'
 
     def __str__(self):
-        return f'создал {self.creator.__str__()} игру {self.game_name}'
+        return f'создал {self.creator.__str__()} игру {self.game_name}, id {self.id}'

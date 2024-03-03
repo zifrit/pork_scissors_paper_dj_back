@@ -13,3 +13,15 @@ class GamesSerializers(serializers.ModelSerializer):
     class Meta:
         model = models.Games
         fields = ['id', 'creator', 'game_name']
+
+
+class UserGamesSerializers(serializers.ModelSerializer):
+
+    def to_representation(self, instance):
+        my_representation = super(UserGamesSerializers, self).to_representation(instance)
+        my_representation['players'] = f'{instance.players.all().count()}/2'
+        return my_representation
+
+    class Meta:
+        model = models.Games
+        fields = ['id', 'game_name']

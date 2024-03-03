@@ -1,16 +1,20 @@
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
-from rest_framework import generics
+from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework import viewsets
+from telebot import TeleBot
+
 from my_user_app import models as my_user_models
 from . import serializers
 from .. import models
 
+bot = TeleBot('5499674135:AAH5OyMw3daMSptBKnHnF_wXj9ho2sJpsz4')
+
 
 class CustomPagination(PageNumberPagination):
-    page_size = 5
+    page_size = 3
     page_size_query_param = "page_size"
 
 
@@ -30,3 +34,42 @@ class ListCreateGames(generics.ListCreateAPIView):
 
         return Response({'status': True,
                          'massage': 'Игра создана'})
+
+
+class JoinInGames(generics.GenericAPIView):
+
+    def post(self, request, pk):
+        data = request.data
+        games = models.Games.objects.get(id=pk)
+        count_players = games.players.all().count()
+        if count_players == 2:
+            return Response({'status': False,
+                             'massages': 'комната уже заполнены'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        elif count_players < 2:
+            if games.creator.tg_id == data['player']:
+                return Response({'status': False,
+                                 'massages': 'Вы не можете присоединится к совой же игре'},
+                                status=status.HTTP_400_BAD_REQUEST)
+            user = my_user_models.CustomUser.objects.get(tg_id=data['player'])
+            games.players.add(user.id)
+            games.save()
+            bot.send_message(chat_id=games.creator.tg_id,
+                             text=f'К комнате присоединился человек игру можно начать /start_rsp_{games.id}')
+            return Response({'status': True,
+                             'massages': 'Вы присоединились к игре'},
+                            status=status.HTTP_200_OK)
+
+        print(request.data)
+        print(pk)
+        return Response({1: 1})
+
+
+class ListUserGames(generics.ListAPIView):
+    queryset = models.Games.objects.all()
+    serializer_class = serializers.UserGamesSerializers
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        data = self.request.data
+        return models.Games.objects.filter(creator__tg_id=data['id'])
