@@ -9,9 +9,15 @@ from . import serializers
 from .. import models
 
 
+class CustomPagination(PageNumberPagination):
+    page_size = 5
+    page_size_query_param = "page_size"
+
+
 class ListCreateGames(generics.ListCreateAPIView):
     queryset = models.Games.objects.all()
     serializer_class = serializers.GamesSerializers
+    pagination_class = CustomPagination
     filterset_fields = [
         'game_name',
     ]

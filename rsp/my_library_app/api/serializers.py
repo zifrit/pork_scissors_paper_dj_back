@@ -7,9 +7,9 @@ class GamesSerializers(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         my_representation = super(GamesSerializers, self).to_representation(instance)
-        my_representation['players'] = instance.players.all().count()
+        my_representation['players'] = f'{instance.players.all().count()}/2'
         return my_representation
 
     class Meta:
         model = models.Games
-        fields = ['creator', 'game_name']
+        fields = ['id', 'creator', 'game_name']
