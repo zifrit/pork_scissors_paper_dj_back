@@ -1,3 +1,5 @@
+import datetime
+
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
@@ -22,6 +24,7 @@ class CustomPagination(PageNumberPagination):
 class ListCreateGames(mixins.CreateModelMixin,
                       mixins.RetrieveModelMixin,
                       mixins.ListModelMixin,
+                      mixins.DestroyModelMixin,
                       GenericViewSet):
     queryset = models.Games.objects.all()
     serializer_class = serializers.GamesSerializers
@@ -33,12 +36,12 @@ class ListCreateGames(mixins.CreateModelMixin,
     @action(methods=['get'], detail=True, url_path='player')
     def player(self, request, pk):
         games = models.Games.objects.get(id=pk)
+        player = {user.tg_id: user.username for user in games.players.all()}
         if games.players.all().count() == 2:
-            player = [user.tg_id for user in games.players.all()]
             return Response({'status': True, 'players': player, 'games_name': games.game_name},
                             status=status.HTTP_200_OK)
-        return Response({'status': False,
-                         'massage': 'В комнате не достаточно игроков'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'status': False, 'players': player, 'games_name': games.game_name,
+                         'message': 'В комнате не достаточно игроков'}, status=status.HTTP_400_BAD_REQUEST)
 
     def create(self, request, *args, **kwargs):
         data = request.data
@@ -47,7 +50,24 @@ class ListCreateGames(mixins.CreateModelMixin,
         game.players.add(creator.id)
 
         return Response({'status': True,
-                         'massage': 'Игра создана'})
+                         'message': 'Игра создана'})
+
+    def destroy(self, request, *args, **kwargs):
+        game = self.get_object()
+        game.delete = True
+        game.date_delete = datetime.datetime.now()
+        game.save()
+        return Response({'status': True,
+                         'message': 'Игра удалена'}, status=status.HTTP_200_OK)
+
+    @action(methods=['post'], detail=True, url_path='delete-players')
+    def delete_players(self, request, pk):
+        games = models.Games.objects.get(id=pk)
+        games.players.clear()
+        games.players.add(games.creator.id)
+        games.save()
+        return Response({'status': True,
+                         'message': 'Игроки удалены'}, status=status.HTTP_200_OK)
 
 
 class JoinInGames(generics.GenericAPIView):
@@ -56,26 +76,23 @@ class JoinInGames(generics.GenericAPIView):
         data = request.data
         games = models.Games.objects.get(id=pk)
         count_players = games.players.all().count()
-        if count_players == 2:
+        if games.creator.tg_id == str(data['player']):
             return Response({'status': False,
-                             'massages': 'комната уже заполнены'},
+                             'message': 'Вы не можете присоединится к совой же игре'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        elif count_players == 2:
+            return Response({'status': False,
+                             'message': 'комната уже заполнены'},
                             status=status.HTTP_400_BAD_REQUEST)
         elif count_players < 2:
-            if games.creator.tg_id == data['player']:
-                return Response({'status': False,
-                                 'massages': 'Вы не можете присоединится к совой же игре'},
-                                status=status.HTTP_400_BAD_REQUEST)
             user = my_user_models.CustomUser.objects.get(tg_id=data['player'])
             games.players.add(user.id)
             games.save()
             bot.send_message(chat_id=games.creator.tg_id,
                              text=f'К комнате присоединился человек игру можно начать /start_rsp_{games.id}')
             return Response({'status': True,
-                             'massages': 'Вы присоединились к игре'},
+                             'message': 'Вы присоединились к игре'},
                             status=status.HTTP_200_OK)
-
-        print(request.data)
-        print(pk)
         return Response({1: 1})
 
 
@@ -86,4 +103,4 @@ class ListUserGames(generics.ListAPIView):
 
     def get_queryset(self):
         data = self.request.data
-        return models.Games.objects.filter(creator__tg_id=data['id'])
+        return models.Games.objects.filter(creator__tg_id=data['id'], delete=False)

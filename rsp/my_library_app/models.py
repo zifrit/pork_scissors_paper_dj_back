@@ -1,6 +1,13 @@
+from django.contrib.auth.models import UserManager
 from django.db import models
 
 from context_app.models import DCU
+
+
+class CustomGamesManager(UserManager):
+
+    def all(self):
+        return self.filter(delete=False)
 
 
 class Games(DCU):
@@ -12,6 +19,8 @@ class Games(DCU):
     game_name = models.CharField(verbose_name='Название игры', max_length=255)
     type_of_game = models.CharField(verbose_name='Тип игры', max_length=100, choices=TYPEOFGAME, default='rsp')
     players = models.ManyToManyField(to='my_user_app.CustomUser', verbose_name='Игроки')
+
+    objects = CustomGamesManager()
 
     class Meta:
         db_table = 'LibraryGames'
