@@ -1,9 +1,10 @@
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
-from rest_framework import generics, status
+from rest_framework import generics, status, mixins
 from rest_framework.views import APIView
 from rest_framework import viewsets
+from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from telebot import TeleBot
 
 from my_user_app import models as my_user_models
@@ -18,13 +19,26 @@ class CustomPagination(PageNumberPagination):
     page_size_query_param = "page_size"
 
 
-class ListCreateGames(generics.ListCreateAPIView):
+class ListCreateGames(mixins.CreateModelMixin,
+                      mixins.RetrieveModelMixin,
+                      mixins.ListModelMixin,
+                      GenericViewSet):
     queryset = models.Games.objects.all()
     serializer_class = serializers.GamesSerializers
     pagination_class = CustomPagination
     filterset_fields = [
         'game_name',
     ]
+
+    @action(methods=['get'], detail=True, url_path='player')
+    def player(self, request, pk):
+        games = models.Games.objects.get(id=pk)
+        if games.players.all().count() == 2:
+            player = [user.tg_id for user in games.players.all()]
+            return Response({'status': True, 'players': player, 'games_name': games.game_name},
+                            status=status.HTTP_200_OK)
+        return Response({'status': False,
+                         'massage': 'В комнате не достаточно игроков'}, status=status.HTTP_400_BAD_REQUEST)
 
     def create(self, request, *args, **kwargs):
         data = request.data
