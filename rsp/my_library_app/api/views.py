@@ -1,5 +1,7 @@
 import datetime
+import os
 
+from dotenv import load_dotenv
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
@@ -13,7 +15,8 @@ from my_user_app import models as my_user_models
 from . import serializers
 from .. import models
 
-bot = TeleBot('5499674135:AAH5OyMw3daMSptBKnHnF_wXj9ho2sJpsz4')
+load_dotenv()
+bot = TeleBot(os.environ.get('BOT_TOKEN', 'False'))
 
 
 class CustomPagination(PageNumberPagination):
